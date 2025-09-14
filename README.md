@@ -42,4 +42,9 @@ The report performs the following steps:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/Penguins_EDA.git
+git clone https://github.com/ClementAMT/R_projects.git
+```
+2. Open Report.Rmd in RStudio
+3. Knit the R Markdown file to HTML:
+
+
