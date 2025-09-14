@@ -10,9 +10,6 @@ It showcases data exploration, visualization, and clustering techniques in R Mar
 - `Report.Rmd` – Main R Markdown report with all analyses and plots.  
 - `scripts.R` – Optional: R scripts used for calculations and plots.  
 - `R_project.Rproj` – RStudio project file.  
-- `.gitignore` – Specifies files to ignore (HTML outputs, temporary files, etc.).  
-
-> **Ignored files**: `Report.html`, `Report_files/`, `.RData`, `.Rhistory`, `Rproj.user/`  
 
 ---
 
