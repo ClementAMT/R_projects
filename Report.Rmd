@@ -1,0 +1,143 @@
+---
+title: "Report"
+output:
+  pdf_document: default
+  html_document: default
+date: "2025-09-12"
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+library(GGally)
+library(plotly)
+library(caret)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width=6, fig.height=4)
+
+```
+
+## Analysis on penguins dataset
+We loaded the penguin data set from the package "palmerpenguins".
+
+# Number of rows and columns
+```{r penguins-analysis, echo=TRUE, message=FALSE, warning=FALSE, fig.width=6, fig.height=4}
+# Load libraries
+library(tidyverse)
+library(palmerpenguins)
+library(GGally)
+library(plotly)
+library(caret)
+
+# Dataset overview
+data <- penguins
+cat("Number of penguins: ", nrow(penguins), "\n")
+cat("Variables: ", names(penguins), "\n\n")
+cat("Missing values per variable:\n")
+print(colSums(is.na(penguins)))
+# Species distribution
+penguins %>% count(species)
+histo_species <- ggplot(penguins) +
+  geom_bar(aes(x = species), fill = "darkorchid4", color = "darkgray") +
+  labs(title = "Penguin Species", subtitle = "Bar chart", y = "Count") +
+  theme_light()
+histo_species
+
+# Island distribution
+penguins %>% count(island)
+histo_isl <- ggplot(penguins) +
+  geom_bar(aes(x = island), fill = "darkorchid4", color = "darkgray") +
+  labs(title = "Number of Penguins per Island", subtitle = "Bar chart", y = "Count") +
+  theme_light()
+histo_isl
+
+# Univariate analysis
+body_mass_plot <- ggplot(penguins, aes(x = species, y = body_mass_g, fill = species)) +
+  geom_boxplot() +
+  labs(title = "Body Mass by Species") +
+  theme_light()
+ 
+body_mass_plot
+
+bill_len_plot <- ggplot(penguins, aes(x = species, y = bill_length_mm, fill = species)) +
+  geom_boxplot() +
+  labs(title = "Bill Length by Species") +
+  theme_light()
+bill_len_plot
+
+flipper_len_plot <- ggplot(penguins, aes(x = species, y = flipper_length_mm, fill = species)) +
+  geom_boxplot() +
+  labs(title = "Flipper Length by Species") +
+  theme_light()
+flipper_len_plot
+# These histogram are showing features differences between species. With the first histogram, Gentoos are nearly 1kg heavier than others, Adelie's bills are smaller and Gentoos have a bigger flipper. 
+# Bivariate analysis
+body_mass_and_flipper_length <- ggplot(penguins, aes(x = body_mass_g, y = flipper_length_mm, color = species)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Body Mass vs Flipper Length") +
+  theme_light()
+#We search a potential correlation between body mass and flipper length. That plot shows us a positive correlation, the heavier entities are the bigger their flipper is. 
+body_mass_and_flipper_length
+
+bill_len_and_sex_plot <- ggplot(penguins, aes(x = species, y = bill_length_mm, fill = sex)) +
+  geom_boxplot(position = position_dodge()) +
+  labs(title = "Bill Length by Sex and Species") +
+  theme_light()
+bill_len_and_sex_plot
+
+isl_and_species_plot <- ggplot(penguins, aes(x = island, fill = species)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Penguin Species Distribution Across Islands") +
+  theme_light()
+isl_and_species_plot
+
+# Multivariate analysis
+features_by_species_plot <- penguins %>%
+  select(species, bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g)
+ggpairs(features_by_species_plot, aes(color = species, alpha = 0.6))
+# From this plot, we observe 3 clear cluster of species and features. 
+plot_ly(
+  data = penguins,
+  x = ~bill_length_mm,
+  y = ~flipper_length_mm,
+  z = ~body_mass_g,
+  color = ~species,
+  colors = c("Adelie" = "blue", "Gentoo" = "green", "Chinstrap" = "red"),
+  type = "scatter3d",
+  mode = "markers"
+)
+
+mass_sex_species <- ggplot(penguins, aes(x = species, y = body_mass_g, fill = sex)) +
+  geom_boxplot(position = position_dodge()) +
+  labs(title = "Body Mass by Sex and Species") +
+  theme_light()
+mass_sex_species
+#As we saw 3 clusters on the 3d plot, we train a knn to predict species. We already know the parameter (3). 
+# K-means clustering
+penguins_num <- penguins %>%
+  select(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g) %>%
+  drop_na()
+
+set.seed(123)
+km <- kmeans(scale(penguins_num), centers = 3)
+
+penguins_clustered <- penguins %>%
+  drop_na(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g) %>%
+  mutate(cluster = factor(km$cluster))
+
+plot_ly(
+  data = penguins_clustered,
+  x = ~bill_length_mm,
+  y = ~flipper_length_mm,
+  z = ~body_mass_g,
+  color = ~cluster,
+  type = "scatter3d",
+  mode = "markers"
+)
+
+# Confusion matrix
+conf_matrix <- table(Cluster = penguins_clustered$cluster, Species = penguins_clustered$species)
+conf_matrix
+#That confusion matrix confirm our model, we achieve a good accuracy with low false positive especially for Gentoos. Our model is validated. 
+```
+
